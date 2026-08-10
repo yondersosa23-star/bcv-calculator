@@ -855,105 +855,81 @@
   }
 
   // ───────────────────────────────────────────
-  // FETCH RATES — estrategia multi-capa anti-CORS
+  // FETCH RATES — JSONP (Anti-CORS Nativo)
   // ───────────────────────────────────────────
-  const SHEETS_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&range=A1:L5`;
-
-  async function tryFetch(url) {
-    const resp = await fetch(url, { cache: 'no-store' });
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    return await resp.text();
-  }
-
-  async function fetchRates() {
+  function fetchRates() {
     if (state.loading) return;
     state.loading = true;
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('loading');
+    document.getElementById('ratesError').style.display = 'none';
 
-    const strategies = [
-      // 1. Directo (funciona desde HTTPS con CORS permitido)
-      () => tryFetch(SHEETS_CSV_URL),
-      // 2. corsproxy.io — proxy CORS gratuito y confiable
-      () => tryFetch(`https://corsproxy.io/?url=${encodeURIComponent(SHEETS_CSV_URL)}`),
-      // 3. allorigins.win — proxy CORS alternativo
-      () => tryFetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(SHEETS_CSV_URL)}`),
-    ];
+    // Creamos la URL con el callback JSONP (bcvCallback)
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:bcvCallback&sheet=${encodeURIComponent(SHEET_NAME)}&range=A1:L5`;
 
-    let success = false;
-    for (const strategy of strategies) {
+    // Eliminamos script anterior si existe
+    const oldScript = document.getElementById('jsonpScript');
+    if (oldScript) oldScript.remove();
+
+    // Inyectamos script
+    const script = document.createElement('script');
+    script.id = 'jsonpScript';
+    script.src = url;
+
+    // Timeout de seguridad (10 segundos)
+    const timeout = setTimeout(() => {
+      if (state.loading) {
+        state.loading = false;
+        btn.classList.remove('loading');
+        document.getElementById('ratesError').style.display = 'block';
+        console.error('JSONP timeout');
+      }
+    }, 10000);
+
+    // Definimos el callback global
+    window.bcvCallback = function(data) {
+      clearTimeout(timeout);
+      state.loading = false;
+      btn.classList.remove('loading');
+
       try {
-        const text = await strategy();
-        if (text && text.includes(',')) {
-          parseCSV(text);
-          document.getElementById('ratesError').style.display = 'none';
-          success = true;
-          break;
-        }
-      } catch (e) {
-        console.warn('Strategy failed, trying next...', e.message);
-      }
-    }
+        if (data.status === 'error') throw new Error(data.errors[0].message);
 
-    if (!success) {
-      console.error('All fetch strategies failed');
+        const rows = data.table.rows;
+        // C2 = rows[0].c[2], J2 = rows[0].c[9], C5 = rows[3].c[2]
+        const r1 = rows[0] ? rows[0].c : [];
+        const r4 = rows[3] ? rows[3].c : [];
+
+        const usd = r1[2] ? r1[2].v : null;
+        const eur = r1[9] ? r1[9].v : null;
+        const usdt = r4[2] ? r4[2].v : null;
+
+        if (usd > 0) state.rateUSD = usd;
+        if (eur > 0) state.rateEUR = eur;
+        if (usdt > 0) state.rateUSDT = usdt;
+
+        // Cache
+        if (state.rateUSD) localStorage.setItem(STORAGE_KEYS.cachedUSD, state.rateUSD);
+        if (state.rateEUR) localStorage.setItem(STORAGE_KEYS.cachedEUR, state.rateEUR);
+        if (state.rateUSDT) localStorage.setItem(STORAGE_KEYS.cachedUSDT, state.rateUSDT);
+        localStorage.setItem(STORAGE_KEYS.cacheDate, new Date().toISOString());
+
+        updateRatesUI();
+        calculate();
+      } catch (err) {
+        console.error('Parse JSONP error', err);
+        document.getElementById('ratesError').style.display = 'block';
+      }
+    };
+
+    script.onerror = function() {
+      clearTimeout(timeout);
+      state.loading = false;
+      btn.classList.remove('loading');
       document.getElementById('ratesError').style.display = 'block';
-    }
+    };
 
-    state.loading = false;
-    btn.classList.remove('loading');
-  }
-
-  function parseCSV(text) {
-    // Split into rows, then columns
-    const rows = text.trim().split('\n').map(row => parseCSVRow(row));
-    // Row index 1 = spreadsheet row 2 (0-indexed)
-    // C2 = rows[1][2], J2 = rows[1][9], C5 = rows[4][2]
-    try {
-      const r2 = rows[1] || [];
-      const r5 = rows[4] || [];
-      const rawUSD = r2[2];
-      const rawEUR = r2[9];
-      const rawUSDT = r5[2];
-
-      const usd = parseFloat(String(rawUSD).replace(/[^0-9.]/g, ''));
-      const eur = parseFloat(String(rawEUR).replace(/[^0-9.]/g, ''));
-      const usdt = parseFloat(String(rawUSDT).replace(/[^0-9.]/g, ''));
-
-      if (!isNaN(usd) && usd > 0) state.rateUSD = usd;
-      if (!isNaN(eur) && eur > 0) state.rateEUR = eur;
-      if (!isNaN(usdt) && usdt > 0) state.rateUSDT = usdt;
-
-      // Cache
-      if (state.rateUSD) localStorage.setItem(STORAGE_KEYS.cachedUSD, state.rateUSD);
-      if (state.rateEUR) localStorage.setItem(STORAGE_KEYS.cachedEUR, state.rateEUR);
-      if (state.rateUSDT) localStorage.setItem(STORAGE_KEYS.cachedUSDT, state.rateUSDT);
-      localStorage.setItem(STORAGE_KEYS.cacheDate, new Date().toISOString());
-
-      updateRatesUI();
-      calculate();
-    } catch (e) {
-      console.error('Parse error', e);
-    }
-  }
-
-  function parseCSVRow(row) {
-    const result = [];
-    let current = '';
-    let inQuotes = false;
-    for (let i = 0; i < row.length; i++) {
-      const ch = row[i];
-      if (ch === '"') {
-        inQuotes = !inQuotes;
-      } else if (ch === ',' && !inQuotes) {
-        result.push(current.trim());
-        current = '';
-      } else {
-        current += ch;
-      }
-    }
-    result.push(current.trim());
-    return result;
+    document.head.appendChild(script);
   }
 
   function loadCachedRates() {
