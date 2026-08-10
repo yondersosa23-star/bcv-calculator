@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="BCV Calculator" />
+  <meta name="theme-color" content="#0D0D0F" />
+  <meta name="description" content="Calculadora BCV — Convierte dólares a bolívares con tasas en tiempo real" />
+  <title>BCV Calculator</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg: #0D0D0F;
+      --surface: #16161A;
+      --surface2: #1E1E24;
+      --border: rgba(255,255,255,0.07);
+      --border-strong: rgba(255,255,255,0.12);
+      --text: #FFFFFF;
+      --text-secondary: rgba(255,255,255,0.5);
+      --text-muted: rgba(255,255,255,0.28);
+      --accent-dollar: #FF6B35;
+      --accent-dollar-end: #E53935;
+      --accent-euro: #4F8EFF;
+      --accent-usdt: #F7A600;
+      --success: #22C55E;
+      --radius: 20px;
+      --radius-sm: 12px;
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+    }
+
+    body {
+      padding-top: var(--safe-top);
+      padding-bottom: var(--safe-bottom);
+    }
+
+    /* ─── Scrollbar ─── */
+    ::-webkit-scrollbar { width: 0; }
+
+    /* ─── Layout ─── */
+    .app {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 0 20px calc(var(--safe-bottom) + 20px);
+    }
+
+    /* ─── Header ─── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 8px;
+    }
+
+    .header-left {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #FF6B35, #FF9A5C);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 400;
+      margin-top: 1px;
+    }
+
+    .header-time {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      text-align: right;
+    }
+
+    .header-date {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* ─── Rates Card ─── */
+    .rates-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 12px 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .rates-card::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 140px; height: 140px;
+      background: radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .rates-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .rates-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .rates-refresh {
+      background: none;
+      border: none;
+      color: var(--accent-dollar);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: rgba(255,107,53,0.1);
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .rates-refresh:active { transform: scale(0.95); background: rgba(255,107,53,0.2); }
+    .rates-refresh.loading .refresh-icon { animation: spin 0.8s linear infinite; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .rates-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .rate-item {
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 12px 10px;
+      text-align: center;
+      border: 1px solid transparent;
+      transition: all 0.25s;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .rate-item.active-dollar { border-color: var(--accent-dollar); background: rgba(255,107,53,0.08); }
+    .rate-item.active-euro { border-color: var(--accent-euro); background: rgba(79,142,255,0.08); }
+    .rate-item.active-usdt { border-color: var(--accent-usdt); background: rgba(247,166,0,0.08); }
+
+    .rate-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    .badge-dollar { background: rgba(255,107,53,0.2); color: var(--accent-dollar); }
+    .badge-euro { background: rgba(79,142,255,0.2); color: var(--accent-euro); }
+    .badge-usdt { background: rgba(247,166,0,0.2); color: var(--accent-usdt); }
+
+    .rate-value {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      display: block;
+    }
+
+    .rate-value.dollar { color: var(--accent-dollar); }
+    .rate-value.euro { color: var(--accent-euro); }
+    .rate-value.usdt { color: var(--accent-usdt); }
+
+    .rate-name {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 3px;
+      display: block;
+    }
+
+    .rates-updated {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 12px;
+    }
+
+    .rates-error {
+      text-align: center;
+      color: #F87171;
+      font-size: 12px;
+      margin-top: 8px;
+      display: none;
+    }
+
+    /* ─── Calc Section ─── */
+    .calc-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 22px 20px;
+      margin-bottom: 14px;
+    }
+
+    .calc-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 12px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .currency-prefix {
+      position: absolute;
+      left: 16px;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .amount-input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 32px;
+      font-weight: 800;
+      font-family: inherit;
+      padding: 16px 16px 16px 46px;
+      outline: none;
+      letter-spacing: -1px;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+
+    .amount-input:focus { border-color: var(--accent-dollar); }
+    .amount-input::placeholder { color: var(--text-muted); }
+
+    .amount-input.euro:focus { border-color: var(--accent-euro); }
+    .amount-input.usdt:focus { border-color: var(--accent-usdt); }
+
+    /* ─── Result Display ─── */
+    .result-display {
+      margin-top: 16px;
+      background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(229,57,53,0.06));
+      border: 1px solid rgba(255,107,53,0.25);
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+      text-align: center;
+      transition: all 0.3s;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .result-display.euro-mode {
+      background: linear-gradient(135deg, rgba(79,142,255,0.12), rgba(79,142,255,0.04));
+      border-color: rgba(79,142,255,0.25);
+    }
+
+    .result-display.usdt-mode {
+      background: linear-gradient(135deg, rgba(247,166,0,0.12), rgba(247,166,0,0.04));
+      border-color: rgba(247,166,0,0.25);
+    }
+
+    .result-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .result-amount {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -1.5px;
+      background: linear-gradient(135deg, #FF6B35, #FF9A5C);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      transition: all 0.2s;
+      line-height: 1.1;
+    }
+
+    .result-amount.euro-color {
+      background: linear-gradient(135deg, #4F8EFF, #82AEFF);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .result-amount.usdt-color {
+      background: linear-gradient(135deg, #F7A600, #FFD166);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .result-rate-used {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    /* ─── Copy Button ─── */
+    .copy-btn {
+      width: 100%;
+      padding: 18px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 16px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      margin-top: 14px;
+      background: linear-gradient(135deg, #FF6B35, #E53935);
+      color: white;
+      letter-spacing: 0.2px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(255,107,53,0.3);
+    }
+
+    .copy-btn:active { transform: scale(0.98); box-shadow: 0 4px 12px rgba(255,107,53,0.2); }
+
+    .copy-btn.euro-btn {
+      background: linear-gradient(135deg, #4F8EFF, #3066CC);
+      box-shadow: 0 8px 24px rgba(79,142,255,0.3);
+    }
+
+    .copy-btn.usdt-btn {
+      background: linear-gradient(135deg, #F7A600, #D4860A);
+      box-shadow: 0 8px 24px rgba(247,166,0,0.3);
+    }
+
+    .copy-btn.copied {
+      background: linear-gradient(135deg, #22C55E, #16A34A) !important;
+      box-shadow: 0 8px 24px rgba(34,197,94,0.3) !important;
+    }
+
+    .copy-btn::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      transition: width 0.3s, height 0.3s, opacity 0.3s;
+      opacity: 0;
+    }
+
+    .copy-btn.ripple::before {
+      width: 400px; height: 400px; opacity: 0;
+    }
+
+    /* ─── Message Preview ─── */
+    .message-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 14px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+    }
+
+    .edit-btn {
+      background: none;
+      border: 1px solid var(--border-strong);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .edit-btn:active { background: var(--surface2); }
+
+    .message-preview {
+      background: var(--surface2);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.8;
+      color: var(--text-secondary);
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--border);
+      min-height: 120px;
+    }
+
+    .preview-highlight {
+      color: var(--accent-dollar);
+      font-weight: 700;
+    }
+
+    .preview-highlight.euro { color: var(--accent-euro); }
+    .preview-highlight.usdt { color: var(--accent-usdt); }
+
+    /* ─── Modal ─── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .modal {
+      background: #1A1A1F;
+      border-radius: 24px 24px 0 0;
+      padding: 24px 20px calc(var(--safe-bottom) + 24px);
+      width: 100%;
+      transform: translateY(100%);
+      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      border-top: 1px solid var(--border-strong);
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0);
+    }
+
+    .modal-handle {
+      width: 36px; height: 4px;
+      background: var(--border-strong);
+      border-radius: 4px;
+      margin: 0 auto 20px;
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 6px;
+    }
+
+    .modal-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      line-height: 1.5;
+    }
+
+    .token-chips {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .token-chip {
+      background: rgba(255,107,53,0.12);
+      border: 1px solid rgba(255,107,53,0.3);
+      color: var(--accent-dollar);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-family: monospace;
+      transition: all 0.2s;
+    }
+
+    .token-chip:nth-child(2) {
+      background: rgba(79,142,255,0.12);
+      border-color: rgba(79,142,255,0.3);
+      color: var(--accent-euro);
+    }
+
+    .token-chip:active { transform: scale(0.95); }
+
+    .template-textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border-strong);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-size: 14px;
+      font-family: inherit;
+      padding: 14px;
+      outline: none;
+      resize: vertical;
+      min-height: 200px;
+      line-height: 1.8;
+      transition: border-color 0.2s;
+    }
+
+    .template-textarea:focus { border-color: var(--accent-dollar); }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-cancel {
+      flex: 1;
+      padding: 15px;
+      border: 1px solid var(--border-strong);
+      background: none;
+      color: var(--text-secondary);
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-save {
+      flex: 2;
+      padding: 15px;
+      border: none;
+      background: linear-gradient(135deg, #FF6B35, #E53935);
+      color: white;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 6px 20px rgba(255,107,53,0.3);
+    }
+
+    .btn-save:active { transform: scale(0.98); }
+    .btn-cancel:active { background: var(--surface2); }
+
+    /* ─── Toast ─── */
+    .toast {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 30px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #22C55E;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 50px;
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s;
+      z-index: 200;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(34,197,94,0.4);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── Loading skeleton ─── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--surface2) 25%, var(--surface) 50%, var(--surface2) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 6px;
+      height: 20px;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    /* ─── Pulse animation for result ─── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-animate {
+      animation: fadeUp 0.2s ease-out;
+    }
+
+    /* ─── Footer info ─── */
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 8px;
+      padding-bottom: 8px;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <span class="header-title">₿ BCV Calculator</span>
+      <span class="header-subtitle">Tasas en tiempo real</span>
+    </div>
+    <div>
+      <div class="header-time" id="headerTime">--:--</div>
+      <div class="header-date" id="headerDate">--</div>
+    </div>
+  </div>
+
+  <!-- RATES CARD -->
+  <div class="rates-card">
+    <div class="rates-header">
+      <span class="rates-label">Tasas del día</span>
+      <button class="rates-refresh" id="refreshBtn" onclick="fetchRates()">
+        <span class="refresh-icon">↻</span> Actualizar
+      </button>
+    </div>
+
+    <div class="rates-grid">
+      <!-- BCV Dólar -->
+      <div class="rate-item active-dollar" id="rateItemDollar" onclick="selectRate('dollar')">
+        <span class="rate-badge badge-dollar">BCV $</span>
+        <span class="rate-value dollar" id="rateUSD">—</span>
+        <span class="rate-name">Dólar</span>
+      </div>
+      <!-- BCV Euro -->
+      <div class="rate-item" id="rateItemEuro" onclick="selectRate('euro')">
+        <span class="rate-badge badge-euro">BCV €</span>
+        <span class="rate-value euro" id="rateEUR">—</span>
+        <span class="rate-name">Euro</span>
+      </div>
+      <!-- USDT Binance -->
+      <div class="rate-item" id="rateItemUsdt" onclick="selectRate('usdt')">
+        <span class="rate-badge badge-usdt">USDT</span>
+        <span class="rate-value usdt" id="rateUSDT">—</span>
+        <span class="rate-name">Binance</span>
+      </div>
+    </div>
+
+    <div class="rates-updated" id="ratesUpdated">Cargando tasas…</div>
+    <div class="rates-error" id="ratesError">⚠️ No se pudieron cargar las tasas. Se usarán valores en caché.</div>
+  </div>
+
+  <!-- CALC SECTION -->
+  <div class="calc-section">
+    <div class="calc-label">Monto a convertir</div>
+    <div class="input-wrapper">
+      <span class="currency-prefix" id="currencyPrefix">$</span>
+      <input
+        type="number"
+        class="amount-input"
+        id="amountInput"
+        placeholder="0.00"
+        inputmode="decimal"
+        step="0.01"
+        min="0"
+        oninput="calculate()"
+      />
+    </div>
+
+    <div class="result-display" id="resultDisplay">
+      <div class="result-label">Total en Bolívares</div>
+      <div class="result-amount" id="resultAmount">Bs 0.00</div>
+      <div class="result-rate-used" id="resultRateUsed">Ingresa un monto arriba</div>
+    </div>
+
+    <button class="copy-btn" id="copyBtn" onclick="copyMessage()">
+      <span>📋</span> Copiar Mensaje de Pago
+    </button>
+  </div>
+
+  <!-- MESSAGE PREVIEW -->
+  <div class="message-section">
+    <div class="section-header">
+      <span class="section-title">Vista previa del mensaje</span>
+      <button class="edit-btn" onclick="openModal()">
+        <span>✏️</span> Editar
+      </button>
+    </div>
+    <div class="message-preview" id="messagePreview">—</div>
+  </div>
+
+  <div class="footer-note">Datos de BCV Oficial · Actualiza cada vez que abres la app</div>
+
+</div>
+
+<!-- MODAL EDICIÓN DE PLANTILLA -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOnBg(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ Editar Mensaje</div>
+    <div class="modal-desc">
+      Personaliza el texto del mensaje. Usa los tokens de abajo donde quieras que aparezcan los valores calculados:
+    </div>
+    <div class="token-chips">
+      <span class="token-chip" onclick="insertToken('{MONTO_USD}')">{MONTO_USD}</span>
+      <span class="token-chip" onclick="insertToken('{MONTO_BS}')">{MONTO_BS}</span>
+    </div>
+    <textarea
+      class="template-textarea"
+      id="templateTextarea"
+      placeholder="Escribe tu plantilla aquí…"
+      spellcheck="false"
+    ></textarea>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      <button class="btn-save" onclick="saveTemplate()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">✅ ¡Copiado!</div>
+
+<script>
+  // ───────────────────────────────────────────
+  // CONFIG
+  // ───────────────────────────────────────────
+  const SHEET_ID = '1CMuDVdvABQXzRXPPzgANHUIIMcwofMH8lB1-QU0zZao';
+  const SHEET_NAME = 'BCVBINANCE';
+
+  const DEFAULT_TEMPLATE = `Pago Móvil 📲\n\nBanco: Mercantil (0105)\nCédula: 20155250\nTeléfono: 04128182280\nMonto: {MONTO_USD}$ a BCV\nTotal: Bs {MONTO_BS}`;
+
+  const STORAGE_KEYS = {
+    template: 'bcv_template',
+    lastRate: 'bcv_lastRate',
+    cachedUSD: 'bcv_cachedUSD',
+    cachedEUR: 'bcv_cachedEUR',
+    cachedUSDT: 'bcv_cachedUSDT',
+    cacheDate: 'bcv_cacheDate',
+  };
+
+  // ───────────────────────────────────────────
+  // STATE
+  // ───────────────────────────────────────────
+  let state = {
+    rateUSD: null,
+    rateEUR: null,
+    rateUSDT: null,
+    selectedRate: localStorage.getItem(STORAGE_KEYS.lastRate) || 'dollar',
+    template: localStorage.getItem(STORAGE_KEYS.template) || DEFAULT_TEMPLATE,
+    loading: false,
+  };
+
+  // ───────────────────────────────────────────
+  // INIT
+  // ───────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    updateClock();
+    setInterval(updateClock, 1000);
+    loadCachedRates();
+    fetchRates();
+    applySelectedRate();
+    renderPreview();
+    registerSW();
+  });
+
+  function registerSW() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  }
+
+  // ───────────────────────────────────────────
+  // CLOCK
+  // ───────────────────────────────────────────
+  function updateClock() {
+    const now = new Date();
+    const timeEl = document.getElementById('headerTime');
+    const dateEl = document.getElementById('headerDate');
+    timeEl.textContent = now.toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' });
+    const days = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+    const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    dateEl.textContent = `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+  }
+
+  // ───────────────────────────────────────────
+  // FETCH RATES
+  // ───────────────────────────────────────────
+  async function fetchRates() {
+    if (state.loading) return;
+    state.loading = true;
+    const btn = document.getElementById('refreshBtn');
+    btn.classList.add('loading');
+
+    try {
+      // Use Google Sheets gviz/tq endpoint (public, no API key needed)
+      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&range=A1:L5`;
+      const resp = await fetch(url, { cache: 'no-store' });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const text = await resp.text();
+      parseCSV(text);
+      document.getElementById('ratesError').style.display = 'none';
+    } catch (err) {
+      console.warn('Fetch error:', err);
+      document.getElementById('ratesError').style.display = 'block';
+      // fallback: keep cached values already loaded
+    } finally {
+      state.loading = false;
+      btn.classList.remove('loading');
+    }
+  }
+
+  function parseCSV(text) {
+    // Split into rows, then columns
+    const rows = text.trim().split('\n').map(row => parseCSVRow(row));
+    // Row index 1 = spreadsheet row 2 (0-indexed)
+    // C2 = rows[1][2], J2 = rows[1][9], C5 = rows[4][2]
+    try {
+      const r2 = rows[1] || [];
+      const r5 = rows[4] || [];
+      const rawUSD = r2[2];
+      const rawEUR = r2[9];
+      const rawUSDT = r5[2];
+
+      const usd = parseFloat(String(rawUSD).replace(/[^0-9.]/g, ''));
+      const eur = parseFloat(String(rawEUR).replace(/[^0-9.]/g, ''));
+      const usdt = parseFloat(String(rawUSDT).replace(/[^0-9.]/g, ''));
+
+      if (!isNaN(usd) && usd > 0) state.rateUSD = usd;
+      if (!isNaN(eur) && eur > 0) state.rateEUR = eur;
+      if (!isNaN(usdt) && usdt > 0) state.rateUSDT = usdt;
+
+      // Cache
+      if (state.rateUSD) localStorage.setItem(STORAGE_KEYS.cachedUSD, state.rateUSD);
+      if (state.rateEUR) localStorage.setItem(STORAGE_KEYS.cachedEUR, state.rateEUR);
+      if (state.rateUSDT) localStorage.setItem(STORAGE_KEYS.cachedUSDT, state.rateUSDT);
+      localStorage.setItem(STORAGE_KEYS.cacheDate, new Date().toISOString());
+
+      updateRatesUI();
+      calculate();
+    } catch (e) {
+      console.error('Parse error', e);
+    }
+  }
+
+  function parseCSVRow(row) {
+    const result = [];
+    let current = '';
+    let inQuotes = false;
+    for (let i = 0; i < row.length; i++) {
+      const ch = row[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+      } else if (ch === ',' && !inQuotes) {
+        result.push(current.trim());
+        current = '';
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  }
+
+  function loadCachedRates() {
+    const cu = parseFloat(localStorage.getItem(STORAGE_KEYS.cachedUSD));
+    const ce = parseFloat(localStorage.getItem(STORAGE_KEYS.cachedEUR));
+    const ct = parseFloat(localStorage.getItem(STORAGE_KEYS.cachedUSDT));
+    if (!isNaN(cu) && cu > 0) state.rateUSD = cu;
+    if (!isNaN(ce) && ce > 0) state.rateEUR = ce;
+    if (!isNaN(ct) && ct > 0) state.rateUSDT = ct;
+    updateRatesUI();
+  }
+
+  function updateRatesUI() {
+    const fmt = (v) => v ? v.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
+    document.getElementById('rateUSD').textContent = state.rateUSD ? fmt(state.rateUSD) : '—';
+    document.getElementById('rateEUR').textContent = state.rateEUR ? fmt(state.rateEUR) : '—';
+    document.getElementById('rateUSDT').textContent = state.rateUSDT ? fmt(state.rateUSDT) : '—';
+
+    const cached = localStorage.getItem(STORAGE_KEYS.cacheDate);
+    if (cached) {
+      const d = new Date(cached);
+      const now = new Date();
+      const diffMin = Math.round((now - d) / 60000);
+      let label = '';
+      if (diffMin < 1) label = 'Actualizado ahora mismo';
+      else if (diffMin < 60) label = `Actualizado hace ${diffMin} min`;
+      else {
+        label = `Actualizado: ${d.toLocaleString('es-VE', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })}`;
+      }
+      document.getElementById('ratesUpdated').textContent = label;
+    } else {
+      document.getElementById('ratesUpdated').textContent = state.rateUSD ? 'Cargado correctamente' : 'Cargando tasas…';
+    }
+  }
+
+  // ───────────────────────────────────────────
+  // RATE SELECTION
+  // ───────────────────────────────────────────
+  function selectRate(rate) {
+    state.selectedRate = rate;
+    localStorage.setItem(STORAGE_KEYS.lastRate, rate);
+    applySelectedRate();
+    calculate();
+    renderPreview();
+  }
+
+  function applySelectedRate() {
+    const r = state.selectedRate;
+    // Rate items
+    document.getElementById('rateItemDollar').className = 'rate-item' + (r === 'dollar' ? ' active-dollar' : '');
+    document.getElementById('rateItemEuro').className = 'rate-item' + (r === 'euro' ? ' active-euro' : '');
+    document.getElementById('rateItemUsdt').className = 'rate-item' + (r === 'usdt' ? ' active-usdt' : '');
+
+    // Input prefix
+    const prefixes = { dollar: '$', euro: '€', usdt: '₮' };
+    document.getElementById('currencyPrefix').textContent = prefixes[r];
+
+    // Input class
+    const input = document.getElementById('amountInput');
+    input.className = 'amount-input' + (r === 'dollar' ? '' : r === 'euro' ? ' euro' : ' usdt');
+
+    // Result display
+    const disp = document.getElementById('resultDisplay');
+    disp.className = 'result-display' + (r === 'dollar' ? '' : r === 'euro' ? ' euro-mode' : ' usdt-mode');
+
+    // Result amount color
+    const ra = document.getElementById('resultAmount');
+    ra.className = 'result-amount' + (r === 'dollar' ? '' : r === 'euro' ? ' euro-color' : ' usdt-color');
+
+    // Copy button
+    const cb = document.getElementById('copyBtn');
+    cb.className = 'copy-btn' + (r === 'dollar' ? '' : r === 'euro' ? ' euro-btn' : ' usdt-btn');
+  }
+
+  // ───────────────────────────────────────────
+  // CALCULATE
+  // ───────────────────────────────────────────
+  function getCurrentRate() {
+    const map = { dollar: state.rateUSD, euro: state.rateEUR, usdt: state.rateUSDT };
+    return map[state.selectedRate] || null;
+  }
+
+  function getRateLabel() {
+    const map = { dollar: 'BCV Dólar', euro: 'BCV Euro', usdt: 'USDT Binance' };
+    return map[state.selectedRate];
+  }
+
+  function calculate() {
+    const input = document.getElementById('amountInput');
+    const amount = parseFloat(input.value);
+    const rate = getCurrentRate();
+    const resultEl = document.getElementById('resultAmount');
+    const rateUsedEl = document.getElementById('resultRateUsed');
+
+    if (!rate) {
+      resultEl.textContent = 'Bs —';
+      rateUsedEl.textContent = 'Cargando tasa…';
+      renderPreview();
+      return;
+    }
+
+    if (isNaN(amount) || amount <= 0) {
+      resultEl.textContent = 'Bs 0.00';
+      rateUsedEl.textContent = `1 unidad × Bs ${rate.toLocaleString('es-VE', { minimumFractionDigits: 2 })} (${getRateLabel()})`;
+      renderPreview();
+      return;
+    }
+
+    const total = amount * rate;
+    resultEl.textContent = `Bs ${total.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    resultEl.classList.remove('result-animate');
+    void resultEl.offsetWidth; // reflow
+    resultEl.classList.add('result-animate');
+
+    rateUsedEl.textContent = `${amount} × Bs ${rate.toLocaleString('es-VE', { minimumFractionDigits: 2 })} = Bs ${total.toLocaleString('es-VE', { minimumFractionDigits: 2 })}`;
+    renderPreview();
+  }
+
+  // ───────────────────────────────────────────
+  // PREVIEW & COPY
+  // ───────────────────────────────────────────
+  function buildMessage(template, monto_usd, monto_bs) {
+    return template
+      .replace(/\{MONTO_USD\}/g, monto_usd)
+      .replace(/\{MONTO_BS\}/g, monto_bs);
+  }
+
+  function getValues() {
+    const amount = parseFloat(document.getElementById('amountInput').value);
+    const rate = getCurrentRate();
+    const hasAmount = !isNaN(amount) && amount > 0;
+    const monto_usd = hasAmount ? amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+    const monto_bs = (hasAmount && rate) ? (amount * rate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
+    return { monto_usd, monto_bs };
+  }
+
+  function renderPreview() {
+    const { monto_usd, monto_bs } = getValues();
+    const tpl = state.template;
+    const preview = document.getElementById('messagePreview');
+
+    // Highlight tokens with spans
+    const escaped = escapeHtml(tpl);
+    const highlighted = escaped
+      .replace(/\{MONTO_USD\}/g, `<span class="preview-highlight">${monto_usd}</span>`)
+      .replace(/\{MONTO_BS\}/g, `<span class="preview-highlight">${monto_bs}</span>`);
+
+    preview.innerHTML = highlighted;
+  }
+
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  async function copyMessage() {
+    const { monto_usd, monto_bs } = getValues();
+    const message = buildMessage(state.template, monto_usd, monto_bs);
+
+    try {
+      await navigator.clipboard.writeText(message);
+    } catch (e) {
+      // Fallback for iOS Safari
+      const ta = document.createElement('textarea');
+      ta.value = message;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      ta.setSelectionRange(0, 99999);
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    // Visual feedback
+    const btn = document.getElementById('copyBtn');
+    const originalHTML = btn.innerHTML;
+    btn.classList.add('copied', 'ripple');
+    btn.innerHTML = '<span>✅</span> ¡Copiado!';
+    setTimeout(() => {
+      btn.classList.remove('copied', 'ripple');
+      btn.innerHTML = originalHTML;
+    }, 2000);
+
+    showToast('✅ ¡Mensaje copiado!');
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // ───────────────────────────────────────────
+  // MODAL
+  // ───────────────────────────────────────────
+  function openModal() {
+    document.getElementById('templateTextarea').value = state.template;
+    document.getElementById('modalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function closeModalOnBg(e) {
+    if (e.target === document.getElementById('modalOverlay')) closeModal();
+  }
+
+  function saveTemplate() {
+    const val = document.getElementById('templateTextarea').value.trim();
+    if (!val) return;
+    state.template = val;
+    localStorage.setItem(STORAGE_KEYS.template, val);
+    closeModal();
+    renderPreview();
+    showToast('💾 Plantilla guardada');
+  }
+
+  function insertToken(token) {
+    const ta = document.getElementById('templateTextarea');
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    ta.value = ta.value.substring(0, start) + token + ta.value.substring(end);
+    ta.selectionStart = ta.selectionEnd = start + token.length;
+    ta.focus();
+  }
+</script>
+
+</body>
+</html>
