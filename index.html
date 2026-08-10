@@ -833,6 +833,9 @@
     applySelectedRate();
     renderPreview();
     registerSW();
+    
+    // Auto-actualizar tasas cada 30 segundos
+    setInterval(fetchRates, 30000);
   });
 
   function registerSW() {
