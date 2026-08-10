@@ -855,30 +855,53 @@
   }
 
   // ───────────────────────────────────────────
-  // FETCH RATES
+  // FETCH RATES — estrategia multi-capa anti-CORS
   // ───────────────────────────────────────────
+  const SHEETS_CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&range=A1:L5`;
+
+  async function tryFetch(url) {
+    const resp = await fetch(url, { cache: 'no-store' });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    return await resp.text();
+  }
+
   async function fetchRates() {
     if (state.loading) return;
     state.loading = true;
     const btn = document.getElementById('refreshBtn');
     btn.classList.add('loading');
 
-    try {
-      // Use Google Sheets gviz/tq endpoint (public, no API key needed)
-      const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(SHEET_NAME)}&range=A1:L5`;
-      const resp = await fetch(url, { cache: 'no-store' });
-      if (!resp.ok) throw new Error('HTTP ' + resp.status);
-      const text = await resp.text();
-      parseCSV(text);
-      document.getElementById('ratesError').style.display = 'none';
-    } catch (err) {
-      console.warn('Fetch error:', err);
-      document.getElementById('ratesError').style.display = 'block';
-      // fallback: keep cached values already loaded
-    } finally {
-      state.loading = false;
-      btn.classList.remove('loading');
+    const strategies = [
+      // 1. Directo (funciona desde HTTPS con CORS permitido)
+      () => tryFetch(SHEETS_CSV_URL),
+      // 2. corsproxy.io — proxy CORS gratuito y confiable
+      () => tryFetch(`https://corsproxy.io/?url=${encodeURIComponent(SHEETS_CSV_URL)}`),
+      // 3. allorigins.win — proxy CORS alternativo
+      () => tryFetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(SHEETS_CSV_URL)}`),
+    ];
+
+    let success = false;
+    for (const strategy of strategies) {
+      try {
+        const text = await strategy();
+        if (text && text.includes(',')) {
+          parseCSV(text);
+          document.getElementById('ratesError').style.display = 'none';
+          success = true;
+          break;
+        }
+      } catch (e) {
+        console.warn('Strategy failed, trying next...', e.message);
+      }
     }
+
+    if (!success) {
+      console.error('All fetch strategies failed');
+      document.getElementById('ratesError').style.display = 'block';
+    }
+
+    state.loading = false;
+    btn.classList.remove('loading');
   }
 
   function parseCSV(text) {
