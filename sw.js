@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bcv-calc-v2';
+const CACHE_NAME = 'bcv-calc-v3';
 const ASSETS = [
   './',
   './index.html',
@@ -30,12 +30,8 @@ self.addEventListener('activate', (evt) => {
 self.addEventListener('fetch', (evt) => {
   const url = evt.request.url;
 
-  // For Google Sheets data: network-first, fallback to cache
+  // Ignorar peticiones a Google Sheets para que el navegador maneje el JSONP nativamente sin interferencias
   if (url.includes('docs.google.com') || url.includes('sheets.googleapis.com')) {
-    evt.respondWith(
-      fetch(evt.request, { cache: 'no-store' })
-        .catch(() => caches.match(evt.request))
-    );
     return;
   }
 
