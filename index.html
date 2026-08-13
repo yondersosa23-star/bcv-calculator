@@ -302,6 +302,13 @@
       display: flex;
       flex-direction: column;
       justify-content: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .result-display:active {
+      transform: scale(0.98);
+      opacity: 0.8;
     }
 
     .result-display.euro-mode {
@@ -738,7 +745,7 @@
       />
     </div>
 
-    <div class="result-display" id="resultDisplay">
+    <div class="result-display" id="resultDisplay" onclick="copyAmountOnly()" title="Toca para copiar solo el monto en Bs">
       <div class="result-label">Total en Bolívares</div>
       <div class="result-amount" id="resultAmount">Bs 0.00</div>
       <div class="result-rate-used" id="resultRateUsed">Ingresa un monto arriba</div>
@@ -1094,13 +1101,25 @@
   async function copyMessage() {
     const { monto_usd, monto_bs } = getValues();
     const message = buildMessage(state.template, monto_usd, monto_bs);
+    await executeCopy(message, true);
+  }
 
+  async function copyAmountOnly() {
+    const { monto_bs } = getValues();
+    if (monto_bs === '0.00') {
+      showToast('⚠️ Ingresa un monto primero');
+      return;
+    }
+    await executeCopy(monto_bs, false);
+  }
+
+  async function executeCopy(textToCopy, isFullMessage) {
     try {
-      await navigator.clipboard.writeText(message);
+      await navigator.clipboard.writeText(textToCopy);
     } catch (e) {
       // Fallback for iOS Safari
       const ta = document.createElement('textarea');
-      ta.value = message;
+      ta.value = textToCopy;
       ta.style.position = 'fixed';
       ta.style.opacity = '0';
       document.body.appendChild(ta);
@@ -1110,17 +1129,21 @@
       document.body.removeChild(ta);
     }
 
-    // Visual feedback
-    const btn = document.getElementById('copyBtn');
-    const originalHTML = btn.innerHTML;
-    btn.classList.add('copied', 'ripple');
-    btn.innerHTML = '<span>✅</span> ¡Copiado!';
-    setTimeout(() => {
-      btn.classList.remove('copied', 'ripple');
-      btn.innerHTML = originalHTML;
-    }, 2000);
-
-    showToast('✅ ¡Mensaje copiado!');
+    if (isFullMessage) {
+      // Visual feedback for full message button
+      const btn = document.getElementById('copyBtn');
+      const originalHTML = btn.innerHTML;
+      btn.classList.add('copied', 'ripple');
+      btn.innerHTML = '<span>✅</span> ¡Copiado!';
+      setTimeout(() => {
+        btn.classList.remove('copied', 'ripple');
+        btn.innerHTML = originalHTML;
+      }, 2000);
+      showToast('✅ ¡Mensaje copiado!');
+    } else {
+      // Visual feedback for amount only
+      showToast('✅ Bs ' + textToCopy + ' copiado');
+    }
   }
 
   function showToast(msg) {
