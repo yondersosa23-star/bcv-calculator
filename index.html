@@ -695,16 +695,18 @@
     }
     .ticker-left {
       color: var(--accent-usdt);
-      width: 25%;
+      width: 18%;
       text-align: left;
+      white-space: nowrap;
     }
     .ticker-right {
       color: var(--text-secondary);
-      width: 25%;
+      width: 22%;
       text-align: right;
+      white-space: nowrap;
     }
     .ticker-center {
-      width: 50%;
+      width: 60%;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -712,10 +714,12 @@
     .ticker-val-left {
       flex: 1;
       text-align: right;
+      white-space: nowrap;
     }
     .ticker-val-right {
       flex: 1;
       text-align: left;
+      white-space: nowrap;
     }
     .ticker-separator {
       color: var(--text-muted);
@@ -1016,6 +1020,7 @@
     };
 
     script.onerror = function() {
+      if (!state.loading) return; // Si ya se cargó por JSONP, ignorar error falso (CORB)
       clearTimeout(timeout);
       state.loading = false;
       btn.classList.remove('loading');
