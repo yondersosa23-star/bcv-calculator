@@ -693,12 +693,6 @@
       font-weight: 600;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .ticker-usd {
-      border-left: 3px solid var(--accent-dollar);
-    }
-    .ticker-eur {
-      border-left: 3px solid var(--accent-euro);
-    }
     .ticker-left {
       color: var(--accent-usdt);
       width: 25%;
@@ -711,10 +705,22 @@
     }
     .ticker-center {
       width: 50%;
-      text-align: center;
       display: flex;
+      align-items: center;
       justify-content: center;
-      gap: 6px;
+    }
+    .ticker-val-left {
+      flex: 1;
+      text-align: right;
+    }
+    .ticker-val-right {
+      flex: 1;
+      text-align: left;
+    }
+    .ticker-separator {
+      color: var(--text-muted);
+      margin: 0 8px;
+      font-weight: 400;
     }
     .ticker-val.positive { color: #22c55e; }
     .ticker-val.negative { color: #ef4444; }
@@ -770,12 +776,12 @@
     <!-- MARKET TICKERS (Permanent) -->
     <div class="rates-tickers">
       <div class="gap-ticker ticker-usd" id="tickerUSD" style="display: none;">
-        <span class="ticker-left">USDT Binance</span>
+        <span class="ticker-left">USDT</span>
         <span class="ticker-center" id="tickerUSDValues">—</span>
         <span class="ticker-right">BCV Dólar</span>
       </div>
       <div class="gap-ticker ticker-eur" id="tickerEUR" style="display: none;">
-        <span class="ticker-left">USDT Binance</span>
+        <span class="ticker-left">USDT</span>
         <span class="ticker-center" id="tickerEURValues">—</span>
         <span class="ticker-right">BCV Euro</span>
       </div>
@@ -1054,7 +1060,7 @@
       const pctClass = state.usdGapPct > 0 ? 'positive' : state.usdGapPct < 0 ? 'negative' : 'neutral';
       const signBs = state.usdGapBs > 0 ? '+' : state.usdGapBs < 0 ? '-' : '';
       const signPct = state.usdGapPct > 0 ? '+' : state.usdGapPct < 0 ? '-' : '';
-      tickerUSDVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.usdGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(Math.abs(state.usdGapPct) * 100).toFixed(0)}%</span>`;
+      tickerUSDVal.innerHTML = `<span class="ticker-val-left ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.usdGapBs).toFixed(2)}</span><span class="ticker-separator">|</span><span class="ticker-val-right ticker-val ${pctClass}">${signPct}${(Math.abs(state.usdGapPct) * 100).toFixed(0)}%</span>`;
     } else {
       tickerUSD.style.display = 'none';
     }
@@ -1067,7 +1073,7 @@
       const pctClass = state.eurGapPct > 0 ? 'positive' : state.eurGapPct < 0 ? 'negative' : 'neutral';
       const signBs = state.eurGapBs > 0 ? '+' : state.eurGapBs < 0 ? '-' : '';
       const signPct = state.eurGapPct > 0 ? '+' : state.eurGapPct < 0 ? '-' : '';
-      tickerEURVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.eurGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(Math.abs(state.eurGapPct) * 100).toFixed(0)}%</span>`;
+      tickerEURVal.innerHTML = `<span class="ticker-val-left ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.eurGapBs).toFixed(2)}</span><span class="ticker-separator">|</span><span class="ticker-val-right ticker-val ${pctClass}">${signPct}${(Math.abs(state.eurGapPct) * 100).toFixed(0)}%</span>`;
     } else {
       tickerEUR.style.display = 'none';
     }
