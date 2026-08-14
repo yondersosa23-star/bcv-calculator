@@ -1052,9 +1052,9 @@
       tickerUSD.style.display = 'flex';
       const bsClass = state.usdGapBs > 0 ? 'positive' : state.usdGapBs < 0 ? 'negative' : 'neutral';
       const pctClass = state.usdGapPct > 0 ? 'positive' : state.usdGapPct < 0 ? 'negative' : 'neutral';
-      const signBs = state.usdGapBs > 0 ? '+' : '';
-      const signPct = state.usdGapPct > 0 ? '+' : '';
-      tickerUSDVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.usdGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(state.usdGapPct * 100).toFixed(0)}%</span>`;
+      const signBs = state.usdGapBs > 0 ? '+' : state.usdGapBs < 0 ? '-' : '';
+      const signPct = state.usdGapPct > 0 ? '+' : state.usdGapPct < 0 ? '-' : '';
+      tickerUSDVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.usdGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(Math.abs(state.usdGapPct) * 100).toFixed(0)}%</span>`;
     } else {
       tickerUSD.style.display = 'none';
     }
@@ -1065,9 +1065,9 @@
       tickerEUR.style.display = 'flex';
       const bsClass = state.eurGapBs > 0 ? 'positive' : state.eurGapBs < 0 ? 'negative' : 'neutral';
       const pctClass = state.eurGapPct > 0 ? 'positive' : state.eurGapPct < 0 ? 'negative' : 'neutral';
-      const signBs = state.eurGapBs > 0 ? '+' : '';
-      const signPct = state.eurGapPct > 0 ? '+' : '';
-      tickerEURVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.eurGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(state.eurGapPct * 100).toFixed(0)}%</span>`;
+      const signBs = state.eurGapBs > 0 ? '+' : state.eurGapBs < 0 ? '-' : '';
+      const signPct = state.eurGapPct > 0 ? '+' : state.eurGapPct < 0 ? '-' : '';
+      tickerEURVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.eurGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(Math.abs(state.eurGapPct) * 100).toFixed(0)}%</span>`;
     } else {
       tickerEUR.style.display = 'none';
     }
