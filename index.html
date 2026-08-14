@@ -676,6 +676,49 @@
       padding-bottom: 8px;
     }
 
+    .rates-tickers {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .gap-ticker {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface2);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .ticker-usd {
+      border-left: 3px solid var(--accent-dollar);
+    }
+    .ticker-eur {
+      border-left: 3px solid var(--accent-euro);
+    }
+    .ticker-left {
+      color: var(--accent-usdt);
+      width: 25%;
+      text-align: left;
+    }
+    .ticker-right {
+      color: var(--text-secondary);
+      width: 25%;
+      text-align: right;
+    }
+    .ticker-center {
+      width: 50%;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+    .ticker-val.positive { color: #22c55e; }
+    .ticker-val.negative { color: #ef4444; }
+
   </style>
 </head>
 <body>
@@ -721,6 +764,20 @@
         <span class="rate-badge badge-usdt">USDT</span>
         <span class="rate-value usdt" id="rateUSDT">—</span>
         <span class="rate-name">Binance</span>
+      </div>
+    </div>
+
+    <!-- MARKET TICKERS (Permanent) -->
+    <div class="rates-tickers">
+      <div class="gap-ticker ticker-usd" id="tickerUSD" style="display: none;">
+        <span class="ticker-left">USDT Binance</span>
+        <span class="ticker-center" id="tickerUSDValues">—</span>
+        <span class="ticker-right">BCV Dólar</span>
+      </div>
+      <div class="gap-ticker ticker-eur" id="tickerEUR" style="display: none;">
+        <span class="ticker-left">USDT Binance</span>
+        <span class="ticker-center" id="tickerEURValues">—</span>
+        <span class="ticker-right">BCV Euro</span>
       </div>
     </div>
 
@@ -875,7 +932,7 @@
     document.getElementById('ratesError').style.display = 'none';
 
     // Creamos la URL con el callback JSONP (bcvCallback)
-    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:bcvCallback&sheet=${encodeURIComponent(SHEET_NAME)}&range=A1:L5`;
+    const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:bcvCallback&sheet=${encodeURIComponent(SHEET_NAME)}&range=A1:L10`;
 
     // Eliminamos script anterior si existe
     const oldScript = document.getElementById('jsonpScript');
@@ -909,19 +966,39 @@
         // C2 = rows[0].c[2], J2 = rows[0].c[9], C5 = rows[3].c[2]
         const r1 = rows[0] ? rows[0].c : [];
         const r4 = rows[3] ? rows[3].c : [];
+        
+        // C8 = rows[6].c[2], J8 = rows[6].c[9] (Diff Bs)
+        // C10 = rows[8].c[2], J10 = rows[8].c[9] (Diff %)
+        const r7 = rows[6] ? rows[6].c : [];
+        const r9 = rows[8] ? rows[8].c : [];
 
         const usd = r1[2] ? r1[2].v : null;
         const eur = r1[9] ? r1[9].v : null;
         const usdt = r4[2] ? r4[2].v : null;
 
+        const usdGapBs = r7[2] ? r7[2].v : null;
+        const eurGapBs = r7[9] ? r7[9].v : null;
+        const usdGapPct = r9[2] ? r9[2].v : null;
+        const eurGapPct = r9[9] ? r9[9].v : null;
+
         if (usd > 0) state.rateUSD = usd;
         if (eur > 0) state.rateEUR = eur;
         if (usdt > 0) state.rateUSDT = usdt;
+        
+        if (usdGapBs !== null) state.usdGapBs = usdGapBs;
+        if (eurGapBs !== null) state.eurGapBs = eurGapBs;
+        if (usdGapPct !== null) state.usdGapPct = usdGapPct;
+        if (eurGapPct !== null) state.eurGapPct = eurGapPct;
 
         // Cache
         if (state.rateUSD) localStorage.setItem(STORAGE_KEYS.cachedUSD, state.rateUSD);
         if (state.rateEUR) localStorage.setItem(STORAGE_KEYS.cachedEUR, state.rateEUR);
         if (state.rateUSDT) localStorage.setItem(STORAGE_KEYS.cachedUSDT, state.rateUSDT);
+        if (state.usdGapBs !== undefined) localStorage.setItem('bcv_usdGapBs', state.usdGapBs);
+        if (state.eurGapBs !== undefined) localStorage.setItem('bcv_eurGapBs', state.eurGapBs);
+        if (state.usdGapPct !== undefined) localStorage.setItem('bcv_usdGapPct', state.usdGapPct);
+        if (state.eurGapPct !== undefined) localStorage.setItem('bcv_eurGapPct', state.eurGapPct);
+        
         localStorage.setItem(STORAGE_KEYS.cacheDate, new Date().toISOString());
 
         updateRatesUI();
@@ -949,6 +1026,16 @@
     if (!isNaN(cu) && cu > 0) state.rateUSD = cu;
     if (!isNaN(ce) && ce > 0) state.rateEUR = ce;
     if (!isNaN(ct) && ct > 0) state.rateUSDT = ct;
+    
+    const gbU = parseFloat(localStorage.getItem('bcv_usdGapBs'));
+    const gbE = parseFloat(localStorage.getItem('bcv_eurGapBs'));
+    const gpU = parseFloat(localStorage.getItem('bcv_usdGapPct'));
+    const gpE = parseFloat(localStorage.getItem('bcv_eurGapPct'));
+    if (!isNaN(gbU)) state.usdGapBs = gbU;
+    if (!isNaN(gbE)) state.eurGapBs = gbE;
+    if (!isNaN(gpU)) state.usdGapPct = gpU;
+    if (!isNaN(gpE)) state.eurGapPct = gpE;
+    
     updateRatesUI();
   }
 
@@ -957,6 +1044,33 @@
     document.getElementById('rateUSD').textContent = state.rateUSD ? fmt(state.rateUSD) : '—';
     document.getElementById('rateEUR').textContent = state.rateEUR ? fmt(state.rateEUR) : '—';
     document.getElementById('rateUSDT').textContent = state.rateUSDT ? fmt(state.rateUSDT) : '—';
+
+    // Update Tickers
+    const tickerUSD = document.getElementById('tickerUSD');
+    const tickerUSDVal = document.getElementById('tickerUSDValues');
+    if (state.usdGapBs !== undefined && state.usdGapPct !== undefined) {
+      tickerUSD.style.display = 'flex';
+      const bsClass = state.usdGapBs > 0 ? 'positive' : state.usdGapBs < 0 ? 'negative' : 'neutral';
+      const pctClass = state.usdGapPct > 0 ? 'positive' : state.usdGapPct < 0 ? 'negative' : 'neutral';
+      const signBs = state.usdGapBs > 0 ? '+' : '';
+      const signPct = state.usdGapPct > 0 ? '+' : '';
+      tickerUSDVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.usdGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(state.usdGapPct * 100).toFixed(0)}%</span>`;
+    } else {
+      tickerUSD.style.display = 'none';
+    }
+
+    const tickerEUR = document.getElementById('tickerEUR');
+    const tickerEURVal = document.getElementById('tickerEURValues');
+    if (state.eurGapBs !== undefined && state.eurGapPct !== undefined) {
+      tickerEUR.style.display = 'flex';
+      const bsClass = state.eurGapBs > 0 ? 'positive' : state.eurGapBs < 0 ? 'negative' : 'neutral';
+      const pctClass = state.eurGapPct > 0 ? 'positive' : state.eurGapPct < 0 ? 'negative' : 'neutral';
+      const signBs = state.eurGapBs > 0 ? '+' : '';
+      const signPct = state.eurGapPct > 0 ? '+' : '';
+      tickerEURVal.innerHTML = `<span class="ticker-val ${bsClass}">${signBs}Bs ${Math.abs(state.eurGapBs).toFixed(2)}</span> | <span class="ticker-val ${pctClass}">${signPct}${(state.eurGapPct * 100).toFixed(0)}%</span>`;
+    } else {
+      tickerEUR.style.display = 'none';
+    }
 
     const cached = localStorage.getItem(STORAGE_KEYS.cacheDate);
     if (cached) {
