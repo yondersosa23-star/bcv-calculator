@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="BCV Calculator" />
+  <meta name="apple-mobile-web-app-title" content="TasaClic" />
   <meta name="theme-color" content="#0D0D0F" />
-  <meta name="description" content="Calculadora BCV — Convierte dólares a bolívares con tasas en tiempo real" />
-  <title>BCV Calculator</title>
+  <meta name="description" content="TasaClic — Convierte dólares a bolívares con tasas en tiempo real" />
+  <title>TasaClic</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -105,14 +105,11 @@
       flex-direction: column;
     }
 
-    .header-title {
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      background: linear-gradient(135deg, #FF6B35, #FF9A5C);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    .header-logo {
+      height: 26px;
+      width: auto;
+      object-fit: contain;
+      margin-bottom: 2px;
     }
 
     .header-subtitle {
@@ -782,7 +779,7 @@
   <!-- HEADER -->
   <div class="header">
     <div class="header-left">
-      <span class="header-title">₿ BCV Calculator</span>
+      <img src="icons/tasaclic-logo.png" alt="TasaClic" class="header-logo" />
       <span class="header-subtitle">Tasas en tiempo real</span>
     </div>
     <div>

@@ -1,7 +1,7 @@
 {
-  "name": "BCV Calculator",
-  "short_name": "BCV",
-  "description": "Calculadora BCV — Convierte dólares a bolívares con tasas en tiempo real",
+  "name": "TasaClic",
+  "short_name": "TasaClic",
+  "description": "TasaClic — Convierte dólares a bolívares con tasas en tiempo real",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0D0D0F",
