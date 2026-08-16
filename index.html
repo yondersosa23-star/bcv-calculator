@@ -17,21 +17,18 @@
 
   <style>
     :root {
-      --bg: #0D0D0F;
-      --surface: #16161A;
-      --surface2: #1E1E24;
-      --border: rgba(255,255,255,0.07);
-      --border-strong: rgba(255,255,255,0.12);
+      --bg: #161616;
+      --bento-coral: #FF7A6A;
+      --bento-blue: #8485F6;
+      --bento-light: #EFEFDF;
+      --bento-dark: #222222;
       --text: #FFFFFF;
-      --text-secondary: rgba(255,255,255,0.5);
-      --text-muted: rgba(255,255,255,0.28);
-      --accent-dollar: #FF6B35;
-      --accent-dollar-end: #E53935;
-      --accent-euro: #4F8EFF;
-      --accent-usdt: #F7A600;
-      --success: #22C55E;
-      --radius: 20px;
-      --radius-sm: 12px;
+      --text-dark: #1A1A1A;
+      --text-secondary: rgba(255,255,255,0.6);
+      --text-muted: rgba(26,26,26,0.6);
+      --success: #10B981;
+      --radius: 32px;
+      --radius-sm: 20px;
       --safe-top: env(safe-area-inset-top, 0px);
       --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
@@ -40,43 +37,17 @@
 
     html {
       height: 100%;
-      background: #09090b; /* Deep dark background */
+      background: var(--bg);
     }
 
     body {
       height: 100%;
-      background: transparent;
+      background: var(--bg);
       color: var(--text);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow-x: hidden;
-      position: relative;
-    }
-
-    body {
       padding-top: var(--safe-top);
       padding-bottom: var(--safe-bottom);
-    }
-
-    /* Ambient Background Blobs for Glassmorphism */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -10%; left: -20%;
-      width: 450px; height: 450px;
-      background: radial-gradient(circle, rgba(255, 107, 53, 0.18) 0%, transparent 60%);
-      border-radius: 50%;
-      z-index: -1;
-      pointer-events: none;
-    }
-    body::after {
-      content: '';
-      position: fixed;
-      bottom: -10%; right: -20%;
-      width: 500px; height: 500px;
-      background: radial-gradient(circle, rgba(79, 142, 255, 0.15) 0%, transparent 60%);
-      border-radius: 50%;
-      z-index: -1;
-      pointer-events: none;
     }
 
     /* ─── Scrollbar ─── */
@@ -135,55 +106,42 @@
       text-align: right;
     }
 
-    /* ─── Rates Card ─── */
+    /* ─── Rates Card (Bento Coral) ─── */
     .rates-card {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(40px);
-      -webkit-backdrop-filter: blur(40px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 28px;
+      background: var(--bento-coral);
+      border-radius: var(--radius);
       padding: 24px 20px;
       margin: 12px 0;
       position: relative;
-      overflow: hidden;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      color: var(--text-dark);
     }
 
-    .rates-card::before {
-      content: '';
-      position: absolute;
-      top: -40px; right: -40px;
-      width: 140px; height: 140px;
-      background: radial-gradient(circle, rgba(255,107,53,0.12) 0%, transparent 70%);
-      border-radius: 50%;
-      pointer-events: none;
-    }
+    .rates-card::before { display: none; }
 
     .rates-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
     }
 
     .rates-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--text-dark);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: -0.5px;
     }
 
     .rates-refresh {
-      background: none;
+      background: rgba(0,0,0,0.1);
       border: none;
-      color: var(--accent-dollar);
+      color: var(--text-dark);
       font-size: 13px;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
-      padding: 4px 10px;
+      padding: 6px 14px;
       border-radius: 20px;
-      background: rgba(255,107,53,0.1);
       transition: all 0.2s;
       font-family: inherit;
       display: flex;
@@ -191,7 +149,7 @@
       gap: 5px;
     }
 
-    .rates-refresh:active { transform: scale(0.95); background: rgba(255,107,53,0.2); }
+    .rates-refresh:active { transform: scale(0.95); background: rgba(0,0,0,0.15); }
     .rates-refresh.loading .refresh-icon { animation: spin 0.8s linear infinite; }
 
     @keyframes spin { to { transform: rotate(360deg); } }
@@ -203,58 +161,58 @@
     }
 
     .rate-item {
-      background: rgba(255, 255, 255, 0.04);
-      border-radius: 20px;
-      padding: 14px 10px;
+      background: var(--bento-light);
+      border-radius: var(--radius-sm);
+      padding: 16px 10px;
       text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      border: 2px solid transparent;
       transition: all 0.25s;
       cursor: pointer;
       position: relative;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      color: var(--text-dark);
     }
 
-    .rate-item.active-dollar { border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.08); box-shadow: inset 0 0 10px rgba(255,107,53,0.05); }
-    .rate-item.active-euro { border-color: rgba(79,142,255,0.4); background: rgba(79,142,255,0.08); box-shadow: inset 0 0 10px rgba(79,142,255,0.05); }
-    .rate-item.active-usdt { border-color: rgba(247,166,0,0.4); background: rgba(247,166,0,0.08); box-shadow: inset 0 0 10px rgba(247,166,0,0.05); }
+    .rate-item.active-dollar, .rate-item.active-euro, .rate-item.active-usdt { 
+      background: #FFFFFF; 
+      border-color: var(--bento-dark); 
+      box-shadow: 4px 4px 0px rgba(0,0,0,0.15); 
+    }
 
     .rate-badge {
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 8px;
       border-radius: 20px;
       display: inline-block;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
+      background: rgba(0,0,0,0.06);
+      color: var(--text-dark);
     }
-
-    .badge-dollar { background: rgba(255,107,53,0.2); color: var(--accent-dollar); }
-    .badge-euro { background: rgba(79,142,255,0.2); color: var(--accent-euro); }
-    .badge-usdt { background: rgba(247,166,0,0.2); color: var(--accent-usdt); }
 
     .rate-value {
-      font-size: 17px;
-      font-weight: 800;
+      font-size: 18px;
+      font-weight: 900;
       letter-spacing: -0.5px;
       display: block;
+      color: var(--text-dark);
     }
 
-    .rate-value.dollar { color: var(--accent-dollar); }
-    .rate-value.euro { color: var(--accent-euro); }
-    .rate-value.usdt { color: var(--accent-usdt); }
+    .rate-value.dollar, .rate-value.euro, .rate-value.usdt { color: var(--text-dark); }
 
     .rate-name {
-      font-size: 10px;
-      color: var(--text-muted);
-      font-weight: 500;
-      margin-top: 3px;
+      font-size: 11px;
+      color: rgba(0,0,0,0.5);
+      font-weight: 600;
+      margin-top: 4px;
       display: block;
     }
 
     .rates-updated {
-      font-size: 11px;
-      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.5);
       text-align: center;
-      margin-top: 12px;
+      margin-top: 16px;
     }
 
     .rates-error {
@@ -265,24 +223,21 @@
       display: none;
     }
 
-    /* ─── Calc Section ─── */
+    /* ─── Calc Section (Bento Blue) ─── */
     .calc-section {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(40px);
-      -webkit-backdrop-filter: blur(40px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 28px;
+      background: var(--bento-blue);
+      border-radius: var(--radius);
       padding: 24px 20px;
       margin-bottom: 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      color: var(--text-dark);
     }
 
     .calc-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-dark);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: -0.5px;
       margin-bottom: 12px;
     }
 
@@ -297,18 +252,17 @@
       left: 16px;
       font-size: 28px;
       font-weight: 700;
-      color: var(--text-secondary);
+      color: rgba(255,255,255,0.6);
       pointer-events: none;
       z-index: 1;
     }
 
     .amount-input {
       width: 100%;
-      background: rgba(0, 0, 0, 0.25);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: var(--bento-dark);
+      border: 2px solid transparent;
       border-radius: 20px;
-      box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
-      color: var(--text);
+      color: #FFFFFF;
       font-size: 32px;
       font-weight: 800;
       font-family: inherit;
@@ -317,19 +271,19 @@
       letter-spacing: -1px;
       transition: border-color 0.2s;
       -webkit-appearance: none;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
-    .amount-input:focus { border-color: var(--accent-dollar); }
-    .amount-input::placeholder { color: var(--text-muted); }
+    .amount-input:focus { border-color: rgba(255,255,255,0.5); }
+    .amount-input::placeholder { color: rgba(255,255,255,0.3); }
 
-    .amount-input.euro:focus { border-color: var(--accent-euro); }
-    .amount-input.usdt:focus { border-color: var(--accent-usdt); }
+    .amount-input.euro:focus { border-color: rgba(255,255,255,0.5); }
+    .amount-input.usdt:focus { border-color: rgba(255,255,255,0.5); }
 
     /* ─── Result Display ─── */
     .result-display {
       margin-top: 16px;
-      background: linear-gradient(135deg, rgba(255,107,53,0.12), rgba(229,57,53,0.06));
-      border: 1px solid rgba(255,107,53,0.25);
+      background: var(--bento-light);
       border-radius: 20px;
       padding: 18px 20px;
       text-align: center;
@@ -340,29 +294,23 @@
       justify-content: center;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
+      border: 2px solid transparent;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
 
     .result-display:active {
       transform: scale(0.98);
-      opacity: 0.8;
     }
 
-    .result-display.euro-mode {
-      background: linear-gradient(135deg, rgba(79,142,255,0.12), rgba(79,142,255,0.04));
-      border-color: rgba(79,142,255,0.25);
-    }
-
-    .result-display.usdt-mode {
-      background: linear-gradient(135deg, rgba(247,166,0,0.12), rgba(247,166,0,0.04));
-      border-color: rgba(247,166,0,0.25);
-    }
+    .result-display.euro-mode { border-color: var(--text-dark); }
+    .result-display.usdt-mode { border-color: var(--text-dark); }
 
     .result-label {
       font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-weight: 800;
+      color: rgba(0,0,0,0.5);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: 0.5px;
       margin-bottom: 6px;
     }
 
@@ -370,45 +318,35 @@
       font-size: 38px;
       font-weight: 900;
       letter-spacing: -1.5px;
-      background: linear-gradient(135deg, #FF6B35, #FF9A5C);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--text-dark);
       transition: all 0.2s;
       line-height: 1.1;
     }
 
-    .result-amount.euro-color {
-      background: linear-gradient(135deg, #4F8EFF, #82AEFF);
-      -webkit-background-clip: text;
-      background-clip: text;
-    }
-
-    .result-amount.usdt-color {
-      background: linear-gradient(135deg, #F7A600, #FFD166);
-      -webkit-background-clip: text;
-      background-clip: text;
+    .result-amount.euro-color, .result-amount.usdt-color {
+      color: var(--text-dark);
     }
 
     .result-rate-used {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.5);
+      margin-top: 8px;
     }
 
-    /* ─── Copy Button ─── */
+    /* ─── Copy Button (Bento Pill) ─── */
     .copy-btn {
       width: 100%;
       padding: 18px 24px;
-      border: none;
+      border: 2px solid transparent;
       border-radius: 40px;
       font-size: 16px;
-      font-weight: 700;
+      font-weight: 800;
       font-family: inherit;
       cursor: pointer;
       margin-top: 14px;
-      background: linear-gradient(135deg, #FF6B35, #E53935);
-      color: white;
+      background: var(--bento-dark);
+      color: #FFFFFF;
       letter-spacing: 0.2px;
       position: relative;
       overflow: hidden;
@@ -416,7 +354,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 8px 24px rgba(255,107,53,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     .copy-btn-content {
       display: flex;
@@ -424,21 +362,17 @@
       gap: 12px;
     }
 
-    .copy-btn:active { transform: scale(0.98); box-shadow: 0 4px 12px rgba(255,107,53,0.2); }
+    .copy-btn:active { transform: scale(0.98); box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
 
-    .copy-btn.euro-btn {
-      background: linear-gradient(135deg, #4F8EFF, #3066CC);
-      box-shadow: 0 8px 24px rgba(79,142,255,0.3);
-    }
-
-    .copy-btn.usdt-btn {
-      background: linear-gradient(135deg, #F7A600, #D4860A);
-      box-shadow: 0 8px 24px rgba(247,166,0,0.3);
+    .copy-btn.euro-btn, .copy-btn.usdt-btn {
+      background: var(--bento-dark);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .copy-btn.copied {
-      background: linear-gradient(135deg, #22C55E, #16A34A) !important;
-      box-shadow: 0 8px 24px rgba(34,197,94,0.3) !important;
+      background: var(--success) !important;
+      color: var(--bento-dark) !important;
+      box-shadow: 0 4px 12px rgba(16,185,129,0.3) !important;
     }
 
     .copy-btn::before {
@@ -457,40 +391,37 @@
       width: 400px; height: 400px; opacity: 0;
     }
 
-    /* ─── Message Preview ─── */
+    /* ─── Message Preview (Bento Off-White) ─── */
     .message-section {
-      background: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(40px);
-      -webkit-backdrop-filter: blur(40px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 28px;
+      background: var(--bento-light);
+      border-radius: var(--radius);
       padding: 24px 20px;
       margin-bottom: 14px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      color: var(--text-dark);
     }
 
     .section-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .section-title {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--text-dark);
       text-transform: uppercase;
-      letter-spacing: 0.8px;
+      letter-spacing: -0.5px;
     }
 
     .edit-btn {
-      background: none;
-      border: 1px solid var(--border-strong);
-      color: var(--text-secondary);
+      background: var(--bento-dark);
+      border: none;
+      color: #FFFFFF;
       font-size: 12px;
-      font-weight: 600;
-      padding: 4px 12px;
+      font-weight: 700;
+      padding: 6px 14px;
       border-radius: 20px;
       cursor: pointer;
       font-family: inherit;
@@ -500,18 +431,18 @@
       gap: 5px;
     }
 
-    .edit-btn:active { background: var(--surface2); }
+    .edit-btn:active { transform: scale(0.95); }
 
     .message-preview {
-      background: var(--surface2);
+      background: rgba(0,0,0,0.05);
       border-radius: var(--radius-sm);
       padding: 16px;
       font-size: 14px;
       line-height: 1.8;
-      color: var(--text-secondary);
+      color: var(--text-dark);
       white-space: pre-wrap;
       word-break: break-word;
-      border: 1px solid var(--border);
+      border: 2px solid transparent;
       min-height: 120px;
     }
 
