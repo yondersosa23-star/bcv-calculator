@@ -38,9 +38,14 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-    html, body {
+    html {
       height: 100%;
-      background: var(--bg);
+      background: #09090b; /* Deep dark background */
+    }
+
+    body {
+      height: 100%;
+      background: transparent;
       color: var(--text);
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       overflow-x: hidden;
@@ -56,9 +61,9 @@
     body::before {
       content: '';
       position: fixed;
-      top: -10%; left: -10%;
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(255, 107, 53, 0.15) 0%, rgba(0,0,0,0) 70%);
+      top: -10%; left: -20%;
+      width: 450px; height: 450px;
+      background: radial-gradient(circle, rgba(255, 107, 53, 0.18) 0%, transparent 60%);
       border-radius: 50%;
       z-index: -1;
       pointer-events: none;
@@ -66,9 +71,9 @@
     body::after {
       content: '';
       position: fixed;
-      bottom: 10%; right: -20%;
-      width: 400px; height: 400px;
-      background: radial-gradient(circle, rgba(79, 142, 255, 0.1) 0%, rgba(0,0,0,0) 70%);
+      bottom: -10%; right: -20%;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(79, 142, 255, 0.15) 0%, transparent 60%);
       border-radius: 50%;
       z-index: -1;
       pointer-events: none;
@@ -132,16 +137,16 @@
 
     /* ─── Rates Card ─── */
     .rates-card {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 28px;
       padding: 24px 20px;
       margin: 12px 0;
       position: relative;
       overflow: hidden;
-      box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
     .rates-card::before {
@@ -198,14 +203,15 @@
     }
 
     .rate-item {
-      background: rgba(255, 255, 255, 0.02);
+      background: rgba(255, 255, 255, 0.04);
       border-radius: 20px;
       padding: 14px 10px;
       text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       transition: all 0.25s;
       cursor: pointer;
       position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
 
     .rate-item.active-dollar { border-color: rgba(255,107,53,0.4); background: rgba(255,107,53,0.08); box-shadow: inset 0 0 10px rgba(255,107,53,0.05); }
@@ -261,14 +267,14 @@
 
     /* ─── Calc Section ─── */
     .calc-section {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 28px;
       padding: 24px 20px;
       margin-bottom: 14px;
-      box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
     .calc-label {
@@ -298,9 +304,10 @@
 
     .amount-input {
       width: 100%;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1.5px solid rgba(255, 255, 255, 0.08);
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
       border-radius: 20px;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
       color: var(--text);
       font-size: 32px;
       font-weight: 800;
@@ -452,14 +459,14 @@
 
     /* ─── Message Preview ─── */
     .message-section {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(40px);
+      -webkit-backdrop-filter: blur(40px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 28px;
       padding: 24px 20px;
       margin-bottom: 14px;
-      box-shadow: inset 0 1px 1px rgba(255,255,255,0.05), 0 8px 32px rgba(0,0,0,0.3);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
     }
 
     .section-header {
@@ -722,13 +729,13 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 14px;
       padding: 10px 14px;
       font-size: 11.5px;
       font-weight: 600;
-      box-shadow: inset 0 1px 1px rgba(255,255,255,0.02);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
     }
     .ticker-left {
       color: var(--accent-usdt);
