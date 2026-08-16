@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bcv-calc-v20';
+const CACHE_NAME = 'bcv-calc-v21';
 const ASSETS = [
   './',
   './index.html',
