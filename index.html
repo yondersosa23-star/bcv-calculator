@@ -894,6 +894,8 @@
     </div>
     <div class="token-chips">
       <span class="token-chip" onclick="insertToken('{MONTO_USD}')">{MONTO_USD}</span>
+      <span class="token-chip" onclick="insertToken('{MONEDA}')">{MONEDA}</span>
+      <span class="token-chip" onclick="insertToken('{TASA}')">{TASA}</span>
       <span class="token-chip" onclick="insertToken('{MONTO_BS}')">{MONTO_BS}</span>
     </div>
     <textarea
@@ -919,7 +921,7 @@
   const SHEET_ID = '1CMuDVdvABQXzRXPPzgANHUIIMcwofMH8lB1-QU0zZao';
   const SHEET_NAME = 'BCVBINANCE';
 
-  const DEFAULT_TEMPLATE = `Pago Móvil 📲\n\nBanco: Mercantil (0105)\nCédula: 20155250\nTeléfono: 04128182280\nMonto: {MONTO_USD}$ a BCV\nTotal: Bs {MONTO_BS}`;
+  const DEFAULT_TEMPLATE = `Pago Móvil 📲\n\nBanco: Mercantil (0105)\nCédula: 20155250\nTeléfono: 04128182280\nMonto: {MONTO_USD} {MONEDA} a {TASA}\nTotal: Bs {MONTO_BS}`;
 
   const STORAGE_KEYS = {
     template: 'bcv_template',
@@ -1232,10 +1234,14 @@
   // ───────────────────────────────────────────
   // PREVIEW & COPY
   // ───────────────────────────────────────────
-  function buildMessage(template, monto_usd, monto_bs) {
-    return template
+  function buildMessage(template, monto_usd, monto_bs, moneda, tasa) {
+    // Migración silenciosa de plantilla vieja a la nueva estructura
+    let tpl = template.replace('{MONTO_USD}$ a BCV', '{MONTO_USD} {MONEDA} a {TASA}');
+    return tpl
       .replace(/\{MONTO_USD\}/g, monto_usd)
-      .replace(/\{MONTO_BS\}/g, monto_bs);
+      .replace(/\{MONTO_BS\}/g, monto_bs)
+      .replace(/\{MONEDA\}/g, moneda)
+      .replace(/\{TASA\}/g, tasa);
   }
 
   function getValues() {
@@ -1244,19 +1250,31 @@
     const hasAmount = !isNaN(amount) && amount > 0;
     const monto_usd = hasAmount ? amount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
     const monto_bs = (hasAmount && rate) ? (amount * rate).toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00';
-    return { monto_usd, monto_bs };
+    
+    const monedaMap = { dollar: '$', euro: '€', usdt: 'USDT' };
+    const tasaMap = { dollar: 'BCV', euro: 'BCV Euro', usdt: 'Binance' };
+    const moneda = monedaMap[state.selectedRate] || '$';
+    const tasa = tasaMap[state.selectedRate] || 'BCV';
+
+    return { monto_usd, monto_bs, moneda, tasa };
   }
 
   function renderPreview() {
-    const { monto_usd, monto_bs } = getValues();
-    const tpl = state.template;
+    const { monto_usd, monto_bs, moneda, tasa } = getValues();
+    let tpl = state.template;
+    
+    // Migración visual de plantilla vieja
+    tpl = tpl.replace('{MONTO_USD}$ a BCV', '{MONTO_USD} {MONEDA} a {TASA}');
+    
     const preview = document.getElementById('messagePreview');
 
     // Highlight tokens with spans
     const escaped = escapeHtml(tpl);
     const highlighted = escaped
       .replace(/\{MONTO_USD\}/g, `<span class="preview-highlight">${monto_usd}</span>`)
-      .replace(/\{MONTO_BS\}/g, `<span class="preview-highlight">${monto_bs}</span>`);
+      .replace(/\{MONTO_BS\}/g, `<span class="preview-highlight">${monto_bs}</span>`)
+      .replace(/\{MONEDA\}/g, `<span class="preview-highlight">${moneda}</span>`)
+      .replace(/\{TASA\}/g, `<span class="preview-highlight">${tasa}</span>`);
 
     preview.innerHTML = highlighted;
   }
@@ -1270,8 +1288,8 @@
   }
 
   async function copyMessage() {
-    const { monto_usd, monto_bs } = getValues();
-    const message = buildMessage(state.template, monto_usd, monto_bs);
+    const { monto_usd, monto_bs, moneda, tasa } = getValues();
+    const message = buildMessage(state.template, monto_usd, monto_bs, moneda, tasa);
     await executeCopy(message, true);
   }
 
