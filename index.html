@@ -910,6 +910,21 @@
   </div>
 </div>
 
+<!-- MODAL AVISO DE ACTUALIZACIÓN -->
+<div class="modal-overlay" id="updateModalOverlay" onclick="closeUpdateModalOnBg(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🎉 ¡Nos renovamos!</div>
+    <div class="modal-desc" style="font-size: 15px; margin-bottom: 20px; line-height: 1.6;">
+      <b>BCV Calculator</b> ahora es <b>TasaClic</b>.<br><br>
+      Para disfrutar de nuestro nuevo ícono oficial en tu pantalla de inicio, por favor <b>elimina el ícono actual de tu teléfono</b>, entra de nuevo desde Safari/Chrome y vuelve a darle a <b>"Agregar a la pantalla de inicio"</b>.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" style="width: 100%; font-size: 16px; padding: 14px;" onclick="closeUpdateModal()">¡Entendido!</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast">✅ ¡Copiado!</div>
 
@@ -954,6 +969,7 @@
     applySelectedRate();
     renderPreview();
     registerSW();
+    checkUpdateNotice();
     
     // Auto-actualizar tasas cada 30 segundos
     setInterval(fetchRates, 30000);
@@ -1358,7 +1374,28 @@
   }
 
   function closeModalOnBg(e) {
-    if (e.target === document.getElementById('modalOverlay')) closeModal();
+    if (e.target.id === 'modalOverlay') closeModal();
+  }
+
+  // ───────────────────────────────────────────
+  // UPDATE NOTICE MODAL
+  // ───────────────────────────────────────────
+  function checkUpdateNotice() {
+    const seen = localStorage.getItem('tasaclic_update_v1_seen');
+    if (!seen) {
+      setTimeout(() => {
+        document.getElementById('updateModalOverlay').classList.add('open');
+      }, 1000); // mostrar 1 segundo despues de abrir la app
+    }
+  }
+
+  function closeUpdateModal() {
+    document.getElementById('updateModalOverlay').classList.remove('open');
+    localStorage.setItem('tasaclic_update_v1_seen', 'true');
+  }
+
+  function closeUpdateModalOnBg(e) {
+    if (e.target.id === 'updateModalOverlay') closeUpdateModal();
   }
 
   function saveTemplate() {
