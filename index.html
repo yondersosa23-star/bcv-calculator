@@ -1381,17 +1381,17 @@
   // UPDATE NOTICE MODAL
   // ───────────────────────────────────────────
   function checkUpdateNotice() {
-    const seen = localStorage.getItem('tasaclic_update_v1_seen');
-    if (!seen) {
+    let count = parseInt(localStorage.getItem('tasaclic_update_v1_count') || '0', 10);
+    if (count < 5) {
       setTimeout(() => {
         document.getElementById('updateModalOverlay').classList.add('open');
-      }, 1000); // mostrar 1 segundo despues de abrir la app
+      }, 1000);
+      localStorage.setItem('tasaclic_update_v1_count', (count + 1).toString());
     }
   }
 
   function closeUpdateModal() {
     document.getElementById('updateModalOverlay').classList.remove('open');
-    localStorage.setItem('tasaclic_update_v1_seen', 'true');
   }
 
   function closeUpdateModalOnBg(e) {
